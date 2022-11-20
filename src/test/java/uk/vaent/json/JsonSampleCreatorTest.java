@@ -32,6 +32,14 @@ class JsonSampleCreatorTest {
     }
 
     @Test
+    public void testCreateNull() {
+        String schema = "{\"type\":\"null\"}";
+        JsonSampleCreator.main(schema);
+        String output = outputListener.toString().strip();
+        assertEquals("null", output);
+    }
+
+    @Test
     public void testCreateNumber() {
         String schema = "{\"type\":\"number\"}";
         JsonSampleCreator.main(schema);

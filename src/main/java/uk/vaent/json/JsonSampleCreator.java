@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.vaent.json.type.JsonBoolean;
+import uk.vaent.json.type.JsonNull;
 import uk.vaent.json.type.JsonNumber;
 import uk.vaent.json.type.JsonString;
 
@@ -17,6 +18,9 @@ public class JsonSampleCreator {
             switch (type) {
                 case "boolean":
                     System.out.println(JsonBoolean.getRandom());
+                    break;
+                case "null":
+                    System.out.println(JsonNull.get());
                     break;
                 case "number":
                     System.out.println(JsonNumber.getRandom());
