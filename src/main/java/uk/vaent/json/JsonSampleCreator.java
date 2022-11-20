@@ -3,6 +3,9 @@ package uk.vaent.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.vaent.json.type.JsonBoolean;
+import uk.vaent.json.type.JsonNumber;
+import uk.vaent.json.type.JsonString;
 
 public class JsonSampleCreator {
     private static ObjectMapper objectMapper = new ObjectMapper();
@@ -13,13 +16,13 @@ public class JsonSampleCreator {
             String type = tree.get("type").asText();
             switch (type) {
                 case "boolean":
-                    System.out.println(true);
+                    System.out.println(JsonBoolean.getRandom());
                     break;
                 case "number":
-                    System.out.println(42);
+                    System.out.println(JsonNumber.getRandom());
                     break;
                 case "string":
-                    System.out.println("\"Hello JSON\"");
+                    System.out.println(JsonString.getRandom());
                     break;
             }
         } catch (JsonProcessingException ex) {
