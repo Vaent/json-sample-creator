@@ -1,15 +1,16 @@
 package uk.vaent.json;
 
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonSampleCreator {
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
     public static void main(String... args) {
-        Pattern typeFinder = Pattern.compile("\"type\"\s*:\s*\"([^\"]*)\"");
-        Matcher typeMatch = typeFinder.matcher(args[0]);
-        if (typeMatch.find()) {
-            String type = typeMatch.group(1).toLowerCase();
+        try {
+            JsonNode tree = objectMapper.readTree(args[0]);
+            String type = tree.get("type").asText();
             switch (type) {
                 case "boolean":
                     System.out.println(true);
@@ -21,6 +22,8 @@ public class JsonSampleCreator {
                     System.out.println("\"Hello JSON\"");
                     break;
             }
+        } catch (JsonProcessingException ex) {
+            throw new IllegalArgumentException("Unable to parse argument as JSON");
         }
     }
 }
