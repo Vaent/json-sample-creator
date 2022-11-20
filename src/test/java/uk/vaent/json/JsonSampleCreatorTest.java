@@ -9,11 +9,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class JsonSampleCreatorTest {
-    private final PrintStream standardOut = System.out;
+    private static final String stringOutputPattern = "\".*\"";
+
+    private String output;
     private final ByteArrayOutputStream outputListener = new ByteArrayOutputStream();
+    private final PrintStream standardOut = System.out;
 
     @BeforeEach
     public void setUp() {
+        output = null;
         System.setOut(new PrintStream(outputListener));
     }
 
@@ -23,28 +27,38 @@ class JsonSampleCreatorTest {
     }
 
     @Test
+    public void testCreateArray() {
+        executeWith("{\"type\":\"array\"}");
+        assertEquals("[]", output);
+    }
+
+    @Test
     public void testCreateBoolean() {
-        String schema = "{\"type\":\"boolean\"}";
-        JsonSampleCreator.main(schema);
-        String output = outputListener.toString().strip();
-        assertFalse(output.matches("\".*\""), "Boolean should not be represented as a string");
+        executeWith("{\"type\":\"boolean\"}");
         assertTrue("true".equalsIgnoreCase(output) || "false".equalsIgnoreCase(output));
     }
 
     @Test
+    public void testCreateInteger() {
+        executeWith("{\"type\":\"integer\"}");
+        assertFalse(output.matches(stringOutputPattern), "Number should not be represented as a string");
+        try {
+            Long.parseLong(output);
+        } catch (NumberFormatException ex) {
+            fail("Output was not an integer");
+        }
+    }
+
+    @Test
     public void testCreateNull() {
-        String schema = "{\"type\":\"null\"}";
-        JsonSampleCreator.main(schema);
-        String output = outputListener.toString().strip();
+        executeWith("{\"type\":\"null\"}");
         assertEquals("null", output);
     }
 
     @Test
     public void testCreateNumber() {
-        String schema = "{\"type\":\"number\"}";
-        JsonSampleCreator.main(schema);
-        String output = outputListener.toString().strip();
-        assertFalse(output.matches("\".*\""), "Number should not be represented as a string");
+        executeWith("{\"type\":\"number\"}");
+        assertFalse(output.matches(stringOutputPattern), "Number should not be represented as a string");
         try {
             Double.parseDouble(output);
         } catch (NumberFormatException ex) {
@@ -53,10 +67,20 @@ class JsonSampleCreatorTest {
     }
 
     @Test
+    public void testCreateObject() {
+        executeWith("{\"type\":\"object\"}");
+        assertEquals("{}", output);
+    }
+
+    @Test
     public void testCreateString() {
-        String schema = "{\"type\":\"string\"}";
-        JsonSampleCreator.main(schema);
-        String output = outputListener.toString().strip();
+        executeWith("{\"type\":\"string\"}");
         assertTrue(output.matches("^\".*\"$"));
+    }
+
+    // helpers
+    private void executeWith(String schema) {
+        JsonSampleCreator.main(schema);
+        output = outputListener.toString().strip();
     }
 }
