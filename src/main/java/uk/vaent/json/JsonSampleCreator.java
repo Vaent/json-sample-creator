@@ -11,20 +11,20 @@ public class JsonSampleCreator {
     public static void main(String... args) {
         try {
             JsonNode tree = objectMapper.readTree(args[0]);
-            System.out.println(getSampleFor(JsonSchemaParser.getType(tree)));
+            System.out.println(getSampleFor(tree));
         } catch (JsonProcessingException ex) {
             throw new IllegalArgumentException("Unable to parse argument as JSON");
         }
     }
 
-    public static JsonNode getSampleFor(JsonType type) {
-        return switch (type) {
+    public static JsonNode getSampleFor(JsonNode schema) {
+        return switch (JsonSchemaParser.getType(schema)) {
             case ARRAY -> JsonArray.getEmpty();
             case BOOLEAN -> JsonBoolean.getRandom();
             case INTEGER -> JsonInteger.getRandom();
             case NULL -> JsonNull.get();
             case NUMBER -> JsonNumber.getRandom();
-            case OBJECT -> JsonObject.getEmpty();
+            case OBJECT -> JsonObject.getSampleFor(schema);
             case STRING -> JsonString.getRandom();
         };
     }

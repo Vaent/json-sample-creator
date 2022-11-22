@@ -1,6 +1,7 @@
 package uk.vaent.json;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static uk.vaent.json.TestHelper.schemaFor;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,12 +39,5 @@ class JsonSchemaParserTest {
         ObjectNode schema = JsonNodeFactory.instance.objectNode().put("type", 42);
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> JsonSchemaParser.getType(schema));
         assertEquals(JsonSchemaParser.INVALID_TYPE_FORMAT_MESSAGE, ex.getMessage());
-    }
-
-    // helpers
-
-    private ObjectNode schemaFor(String typeName) {
-        ObjectNode schema = JsonNodeFactory.instance.objectNode();
-        return schema.put("type", typeName);
     }
 }
