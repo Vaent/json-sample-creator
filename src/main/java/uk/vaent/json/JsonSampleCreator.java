@@ -11,34 +11,21 @@ public class JsonSampleCreator {
     public static void main(String... args) {
         try {
             JsonNode tree = objectMapper.readTree(args[0]);
-            String type = tree.get("type").asText();
-            switch (type) {
-                case "array":
-                    System.out.println(JsonArray.getEmpty());
-                    break;
-                case "boolean":
-                    System.out.println(JsonBoolean.getRandom());
-                    break;
-                case "integer":
-                    System.out.println(JsonInteger.getRandom());
-                    break;
-                case "null":
-                    System.out.println(JsonNull.get());
-                    break;
-                case "number":
-                    System.out.println(JsonNumber.getRandom());
-                    break;
-                case "object":
-                    System.out.println(JsonObject.getEmpty());
-                    break;
-                case "string":
-                    System.out.println(JsonString.getRandom());
-                    break;
-                default:
-                    throw new IllegalArgumentException("Type declared in schema was not recognised");
-            }
+            System.out.println(getSampleFor(JsonSchemaParser.getType(tree)));
         } catch (JsonProcessingException ex) {
             throw new IllegalArgumentException("Unable to parse argument as JSON");
         }
+    }
+
+    public static JsonNode getSampleFor(JsonType type) {
+        return switch (type) {
+            case ARRAY -> JsonArray.getEmpty();
+            case BOOLEAN -> JsonBoolean.getRandom();
+            case INTEGER -> JsonInteger.getRandom();
+            case NULL -> JsonNull.get();
+            case NUMBER -> JsonNumber.getRandom();
+            case OBJECT -> JsonObject.getEmpty();
+            case STRING -> JsonString.getRandom();
+        };
     }
 }
