@@ -2,6 +2,16 @@
 
 A tool for generating sample JSON data based on user-supplied schemas and parameters.
 
+Example usage:
+
+```
+java -jar json-sample-creator-0.1.0.jar {\"type\":\"boolean\"}
+> false
+
+java -jar json-sample-creator-0.1.0.jar {\"type\":\"string\"}
+> "rnd42"
+```
+
 ## Current status
 
 Spring Boot functionality has been added throughout the application code. Note: executing the application with the `mvn spring-boot:run` command will fail due to stripping of quotes from the JSON argument passed in; the application must be launched through the `main` method of the JsonSampleCreator class, as previously.
