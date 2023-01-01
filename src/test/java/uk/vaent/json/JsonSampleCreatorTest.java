@@ -7,9 +7,18 @@ import java.io.PrintStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = JsonSampleCreator.class)
 class JsonSampleCreatorTest {
-    private static final String stringOutputPattern = "\".*\"";
+    private static final String stringOutputPattern = "^\".*\"$";
+
+    @Autowired
+    private JsonSampleCreator jsonSampleCreator;
 
     private String output;
     private final ByteArrayOutputStream outputListener = new ByteArrayOutputStream();
@@ -75,12 +84,12 @@ class JsonSampleCreatorTest {
     @Test
     public void testCreateString() {
         executeWith("{\"type\":\"string\"}");
-        assertTrue(output.matches("^\".*\"$"));
+        assertTrue(output.matches(stringOutputPattern));
     }
 
     // helpers
     private void executeWith(String schema) {
-        JsonSampleCreator.main(schema);
+        jsonSampleCreator.run(schema);
         output = outputListener.toString().strip();
     }
 }
