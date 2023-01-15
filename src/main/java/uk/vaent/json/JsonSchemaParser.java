@@ -10,7 +10,7 @@ public class JsonSchemaParser {
     public static JsonType getType(JsonNode schema) {
         JsonNode type = schema.get("type");
         if (type == null) return null;
-        if (type.isTextual() && type.asText().matches("[a-z]*")) {
+        if (type.isTextual()) {
             try {
                 return JsonType.valueOf(type.asText().toUpperCase());
             } catch (IllegalArgumentException ex) {
