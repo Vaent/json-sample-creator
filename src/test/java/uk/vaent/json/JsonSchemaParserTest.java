@@ -28,8 +28,10 @@ class JsonSchemaParserTest {
 
     @Test
     public void testGetTypeWhenNotDeclared() {
-        // empty object - type field not present
-        assertNull(JsonSchemaParser.getType(JsonNodeFactory.instance.objectNode()));
+        // empty object (type field not present) - all types are valid
+        assertNotNull(JsonSchemaParser.getType(JsonNodeFactory.instance.objectNode()), "Absent type should produce a value");
+        // empty type array - all types are valid
+        assertNotNull(JsonSchemaParser.getType(schemaFor(new String[] {})), "Empty type array should produce a value");
         // JsonNode other than object cannot supply a type property
         assertNull(JsonSchemaParser.getType(JsonNodeFactory.instance.textNode("type:string")));
     }
@@ -61,5 +63,13 @@ class JsonSchemaParserTest {
         assertTrue(JsonSchemaParser.validate(JsonType.STRING, schemaFor("string")));
         assertFalse(JsonSchemaParser.validate(JsonType.NUMBER, schemaFor("boolean")));
         assertFalse(JsonSchemaParser.validate(JsonType.NULL, schemaFor("object")));
+    }
+
+    @Test
+    public void testValidateNoTypeConstraint() {
+        assertTrue(JsonSchemaParser.validate(JsonType.OBJECT, schemaFor(new String[] {})));
+        assertTrue(JsonSchemaParser.validate(JsonType.NUMBER, schemaFor(new String[] {})));
+        assertTrue(JsonSchemaParser.validate(JsonType.ARRAY, JsonNodeFactory.instance.objectNode()));
+        assertTrue(JsonSchemaParser.validate(JsonType.NULL, JsonNodeFactory.instance.objectNode()));
     }
 }

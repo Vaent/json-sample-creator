@@ -24,7 +24,9 @@ JsonSampleCreator immediately defers to the factories to handle sample productio
 
 All factories validate the `type` keyword of the schema passed in.
 
-If a type array like `"type":["integer","boolean"]` is supplied in the schema, provided the array contains only valid JSON types, a type will be selected at random from the array elements before fetching the relevant factory.
+If a type array like `"type":["integer","boolean"]` is supplied in the schema, provided the array contains only valid JSON types, a type will be selected from the array elements before fetching the relevant factory.
+
+If the schema contains no type definition, or the type keyword is an empty array, a type is selected at random before fetching its factory (all types are valid in the absence of a constraint).
 
 ### Features implemented for each JSON type
 
