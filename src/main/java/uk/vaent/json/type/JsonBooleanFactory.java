@@ -18,7 +18,7 @@ public class JsonBooleanFactory implements JsonTypeFactory {
 
     @Override
     public JsonNode getSampleFor(JsonNode schema) {
-        if (!JsonType.BOOLEAN.equals(JsonSchemaParser.getType(schema))) return null;
+        if (!JsonSchemaParser.validate(JsonType.BOOLEAN, schema)) return null;
         return getRandom();
     }
 }

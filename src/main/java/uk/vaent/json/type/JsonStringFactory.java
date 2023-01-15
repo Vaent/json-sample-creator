@@ -12,7 +12,7 @@ public class JsonStringFactory implements JsonTypeFactory {
 
     @Override
     public JsonNode getSampleFor(JsonNode schema) {
-        if (!JsonType.STRING.equals(JsonSchemaParser.getType(schema))) return null;
+        if (!JsonSchemaParser.validate(JsonType.STRING, schema)) return null;
         return TextNode.valueOf(generexDefault.random());
     }
 }

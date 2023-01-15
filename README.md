@@ -20,9 +20,13 @@ The various JSON type factories implement a common interface with a single metho
 
 JsonSampleCreator immediately defers to the factories to handle sample production when the app is run with at least one JSON schema argument. Only the first argument is processed.
 
-### Features implemented for each JSON type
+### Type validation
 
-Note: all factories validate the `type` keyword of the schema passed in. Type arrays like `"type":["integer","boolean"]` are not supported.
+All factories validate the `type` keyword of the schema passed in.
+
+If a type array like `"type":["integer","boolean"]` is supplied in the schema, provided the array contains only valid JSON types, a type will be selected at random from the array elements before fetching the relevant factory.
+
+### Features implemented for each JSON type
 
 - *JsonArrayFactory*
   - ignores details in schema, always returns an empty array

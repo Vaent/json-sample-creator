@@ -9,7 +9,7 @@ import uk.vaent.json.JsonSchemaParser;
 public class JsonNullFactory implements JsonTypeFactory {
     @Override
     public JsonNode getSampleFor(JsonNode schema) {
-        if (!JsonType.NULL.equals(JsonSchemaParser.getType(schema))) return null;
+        if (!JsonSchemaParser.validate(JsonType.NULL, schema)) return null;
         return NullNode.getInstance();
     }
 }

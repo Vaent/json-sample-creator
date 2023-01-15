@@ -21,6 +21,12 @@ class JsonSchemaParserTest {
     }
 
     @Test
+    public void testGetTypeFromArray() {
+        JsonType type = JsonSchemaParser.getType(schemaFor(new String[] {"boolean", "integer"}));
+        assertTrue(JsonType.BOOLEAN.equals(type) || JsonType.INTEGER.equals(type));
+    }
+
+    @Test
     public void testGetTypeWhenNotDeclared() {
         // empty object - type field not present
         assertNull(JsonSchemaParser.getType(JsonNodeFactory.instance.objectNode()));
@@ -39,5 +45,21 @@ class JsonSchemaParserTest {
         ObjectNode schema = JsonNodeFactory.instance.objectNode().put("type", 42);
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> JsonSchemaParser.getType(schema));
         assertEquals(JsonSchemaParser.INVALID_TYPE_FORMAT_MESSAGE, ex.getMessage());
+    }
+
+    @Test
+    public void testValidateArrayOfTypes() {
+        assertTrue(JsonSchemaParser.validate(JsonType.BOOLEAN, schemaFor(new String[] {"boolean", "integer"})));
+        assertTrue(JsonSchemaParser.validate(JsonType.INTEGER, schemaFor(new String[] {"boolean", "integer"})));
+        assertFalse(JsonSchemaParser.validate(JsonType.ARRAY, schemaFor(new String[] {"boolean", "integer"})));
+        assertFalse(JsonSchemaParser.validate(JsonType.NUMBER, schemaFor(new String[] {"boolean", "integer"})));
+    }
+
+    @Test
+    public void testValidateSingleType() {
+        assertTrue(JsonSchemaParser.validate(JsonType.ARRAY, schemaFor("array")));
+        assertTrue(JsonSchemaParser.validate(JsonType.STRING, schemaFor("string")));
+        assertFalse(JsonSchemaParser.validate(JsonType.NUMBER, schemaFor("boolean")));
+        assertFalse(JsonSchemaParser.validate(JsonType.NULL, schemaFor("object")));
     }
 }

@@ -14,7 +14,7 @@ public class JsonIntegerFactory implements JsonTypeFactory {
 
     @Override
     public JsonNode getSampleFor(JsonNode schema) {
-        if (!JsonType.INTEGER.equals(JsonSchemaParser.getType(schema))) return null;
+        if (!JsonSchemaParser.validate(JsonType.INTEGER, schema)) return null;
         return LongNode.valueOf(random.nextLong());
     }
 }

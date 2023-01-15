@@ -15,7 +15,7 @@ public class JsonObjectFactory implements JsonTypeFactory {
 
     @Override
     public ObjectNode getSampleFor(JsonNode schema) {
-        if (!JsonType.OBJECT.equals(JsonSchemaParser.getType(schema))) return null;
+        if (!JsonSchemaParser.validate(JsonType.OBJECT, schema)) return null;
         ObjectNode sample = JsonNodeFactory.instance.objectNode();
         JsonNode propertiesSchema = schema.get("properties");
         if (propertiesSchema != null) {

@@ -14,7 +14,7 @@ public class JsonNumberFactory implements JsonTypeFactory {
 
     @Override
     public JsonNode getSampleFor(JsonNode schema) {
-        if (!JsonType.NUMBER.equals(JsonSchemaParser.getType(schema))) return null;
+        if (!JsonSchemaParser.validate(JsonType.NUMBER, schema)) return null;
         return DoubleNode.valueOf(random.nextDouble());
     }
 }
