@@ -5,12 +5,18 @@ A tool for generating sample JSON data based on user-supplied schemas and parame
 Example usage:
 
 ```
-java -jar json-sample-creator-0.1.0.jar {\"type\":\"boolean\"}
+java -jar json-sample-creator-0.1.1.jar {\"type\":\"boolean\"}
 > false
 
-java -jar json-sample-creator-0.1.0.jar {\"type\":\"string\"}
+java -jar json-sample-creator-0.1.1.jar \{\"type\":[\"string\",\"null\"]\}
 > "rnd42"
 ```
+
+Note the importance of escaping special characters when running the app from the command line. Quotes `""` must always be escaped, and if an array `[]` appears anywhere in the JSON schema argument, then curly braces `{}` may also need to be escaped.
+
+**This behaviour is not consistent across different terminals** - manual testing on a Windows machine revealed that Git Bash requires braces to be escaped when using arrays, and permits escaping them (optionally) when no arrays are present; but Command Line does **not** accept escaped braces in either scenario, though quotes must always be escaped in both apps.
+
+A target for future development is for schemas to be loaded from file rather than passed as a command line argument. When implemented, that feature will negate the need for escaping any characters in the JSON.
 
 ## Current status
 
