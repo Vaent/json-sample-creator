@@ -2,29 +2,37 @@
 
 A tool for generating sample JSON data based on user-supplied schemas and parameters.
 
-Example usage:
+Example usage (JAR):
 
 ```
-java -jar json-sample-creator-0.1.1.jar {\"type\":\"boolean\"}
-> false
-
-java -jar json-sample-creator-0.1.1.jar \{\"type\":[\"string\",\"null\"]\}
-> "rnd42"
+java -jar -DschemaSourceDirectory="file:///C:/example/json-schemas" json-sample-creator-0.2.0.jar boolean.schema.json string.schema.json
 ```
 
-Note the importance of escaping special characters when running the app from the command line. Quotes `""` must always be escaped, and if an array `[]` appears anywhere in the JSON schema argument, then curly braces `{}` may also need to be escaped.
+Example usage (Maven):
+```
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="-DschemaSourceDirectory=file:///C:/example/json-schemas" -Dspring-boot.run.arguments="boolean.schema.json string.schema.json"
+```
 
-**This behaviour is not consistent across different terminals** - manual testing on a Windows machine revealed that Git Bash requires braces to be escaped when using arrays, and permits escaping them (optionally) when no arrays are present; but Command Line does **not** accept escaped braces in either scenario, though quotes must always be escaped in both apps.
+Example output:
+```
+Output for << file:///C:/example/json-schemas/boolean.schema.json >> follows...
+false
 
-A target for future development is for schemas to be loaded from file rather than passed as a command line argument. When implemented, that feature will negate the need for escaping any characters in the JSON.
+Output for << file:///C:/example/json-schemas/string.schema.json >> follows...
+"rnd42"
+```
+
+With version 0.2.0 the app takes schema file names as its arguments, instead of requiring the schema contents to be passed in directly. This update also processes each argument in turn rather than only considering the first argument.
+
+Each schema file should be located in the directory specified by the `-DschemaSourceDirectory` option. System file paths must be prefixed with `file:///` or they will be treated as classpath resources. If no directory is specified via the command line, the property will be picked up from `application.properties` through Spring configuration (by default the directory path is an empty string, referencing the classpath).
 
 ## Current status
 
-Spring Boot functionality has been added throughout the application code. Note: executing the application with the `mvn spring-boot:run` command will fail due to stripping of quotes from the JSON argument passed in; the application must be launched through the `main` method of the JsonSampleCreator class, as previously.
+Spring Boot functionality has been added throughout the application code.
 
 The various JSON type factories implement a common interface with a single method which accepts a JSON schema (unmarshalled into a JsonNode) and returns a sample of the appropriate type.
 
-JsonSampleCreator immediately defers to the factories to handle sample production when the app is run with at least one JSON schema argument. Only the first argument is processed.
+JsonSampleCreator immediately defers to the factories to handle sample production when the app is run with at least one argument identifying a JSON schema file.
 
 ### Type validation
 

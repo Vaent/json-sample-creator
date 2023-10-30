@@ -10,10 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = JsonSampleCreator.class)
+@TestPropertySource("classpath:config/application-test.properties")
 class JsonSampleCreatorTest {
     private static final String stringOutputPattern = "^\".*\"$";
 
@@ -37,19 +39,19 @@ class JsonSampleCreatorTest {
 
     @Test
     public void testCreateArray() {
-        executeWith("{\"type\":\"array\"}");
+        executeWith("array.schema.json");
         assertEquals("[]", output);
     }
 
     @Test
     public void testCreateBoolean() {
-        executeWith("{\"type\":\"boolean\"}");
+        executeWith("boolean.schema.json");
         assertTrue("true".equalsIgnoreCase(output) || "false".equalsIgnoreCase(output));
     }
 
     @Test
     public void testCreateInteger() {
-        executeWith("{\"type\":\"integer\"}");
+        executeWith("integer.schema.json");
         assertFalse(output.matches(stringOutputPattern), "Number should not be represented as a string");
         try {
             Long.parseLong(output);
@@ -60,13 +62,13 @@ class JsonSampleCreatorTest {
 
     @Test
     public void testCreateNull() {
-        executeWith("{\"type\":\"null\"}");
+        executeWith("null.schema.json");
         assertEquals("null", output);
     }
 
     @Test
     public void testCreateNumber() {
-        executeWith("{\"type\":\"number\"}");
+        executeWith("number.schema.json");
         assertFalse(output.matches(stringOutputPattern), "Number should not be represented as a string");
         try {
             Double.parseDouble(output);
@@ -77,19 +79,22 @@ class JsonSampleCreatorTest {
 
     @Test
     public void testCreateObject() {
-        executeWith("{\"type\":\"object\"}");
+        executeWith("object.schema.json");
         assertEquals("{}", output);
     }
 
     @Test
     public void testCreateString() {
-        executeWith("{\"type\":\"string\"}");
+        executeWith("string.schema.json");
         assertTrue(output.matches(stringOutputPattern));
     }
 
     // helpers
-    private void executeWith(String schema) {
-        jsonSampleCreator.run(schema);
+    private void executeWith(String schemaFileName) {
+        jsonSampleCreator.run(schemaFileName);
         output = outputListener.toString().strip();
+        standardOut.println(output);
+        String[] outputLines = output.split("\n");
+        output = outputLines[outputLines.length - 1];
     }
 }

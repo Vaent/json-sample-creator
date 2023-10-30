@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Random;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import uk.vaent.json.JsonSchemaParser;
 import uk.vaent.json.type.*;
 
 @Configuration
+@PropertySource("classpath:config/application.properties")
 public class JsonSampleCreatorConfig {
     @Bean(autowireCandidate = false)
     @Scope("prototype")
