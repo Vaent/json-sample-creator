@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Random;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -39,16 +40,16 @@ public class JsonSampleCreatorConfig {
     }
 
     @Bean(autowireCandidate = false)
-    @Scope("prototype")
+    @Scope(BeanDefinition.SCOPE_PROTOTYPE)
     public JsonTypeFactory getJsonSampleFactory(JsonNode schema) {
         return switch (JsonSchemaParser.getType(schema)) {
-            case ARRAY -> new JsonArrayFactory();
-            case BOOLEAN -> new JsonBooleanFactory();
-            case INTEGER -> new JsonIntegerFactory();
-            case NULL -> new JsonNullFactory();
-            case NUMBER -> new JsonNumberFactory();
-            case OBJECT -> new JsonObjectFactory();
-            case STRING -> new JsonStringFactory();
+            case ARRAY -> new JsonArrayFactory(schema);
+            case BOOLEAN -> new JsonBooleanFactory(schema);
+            case INTEGER -> new JsonIntegerFactory(schema);
+            case NULL -> new JsonNullFactory(schema);
+            case NUMBER -> new JsonNumberFactory(schema);
+            case OBJECT -> new JsonObjectFactory(schema);
+            case STRING -> new JsonStringFactory(schema);
         };
     }
 

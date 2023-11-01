@@ -40,7 +40,7 @@ public class JsonSampleCreator implements CommandLineRunner {
             if (schemaTree != null) {
                 dialectStack.push(config.setJsonSchemaDialectFrom(schemaTree));
                 System.out.println("Schema dialect: " + config.getJsonSchemaDialect());
-                System.out.println(config.getJsonSampleFactory(schemaTree).getSampleFor(schemaTree));
+                System.out.println(config.getJsonSampleFactory(schemaTree).getSample());
                 dialectStack.pop();
                 config.setJsonSchemaDialect(dialectStack.peek());
             }
