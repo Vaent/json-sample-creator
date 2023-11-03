@@ -24,7 +24,7 @@ public class JsonBooleanFactory extends JsonTypeFactory {
     }
 
     @Override
-    public JsonNode getSample() {
+    protected JsonNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.BOOLEAN, schema)) return null;
         return getRandom();
     }

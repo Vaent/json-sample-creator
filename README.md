@@ -30,13 +30,19 @@ Each schema file should be located in the directory specified by the `-DschemaSo
 
 Spring Boot functionality has been added throughout the application code.
 
-The various JSON type factories implement a common interface with a single method which accepts a JSON schema (unmarshalled into a JsonNode) and returns a sample of the appropriate type.
+The various JSON type factories implement a common interface with a single method which accepts a JSON schema (unmarshalled into a JsonNode) and returns a sample of the appropriate type, or constant value if such a constraint exists in the schema.
 
 JsonSampleCreator immediately defers to the factories to handle sample production when the app is run with at least one argument identifying a JSON schema file.
 
+### Constant values
+
+These are naively inserted into samples instead of generating a node based on a declared type, if the schema contains the `const` keyword.
+
+All implementations of `typeFactory` currently prioritise constant values regardless of their type, with no checking of the value against other keywords in the schema. This will likely be tightened up in due course.
+
 ### Type validation
 
-All factories validate the `type` keyword of the schema passed in.
+All factories validate the `type` keyword of the schema passed in (unless inserting a constant value as described above).
 
 If a type array like `"type":["integer","boolean"]` is supplied in the schema, provided the array contains only valid JSON types, a type will be selected from the array elements before fetching the relevant factory.
 

@@ -20,7 +20,7 @@ public class JsonIntegerFactory extends JsonTypeFactory {
     }
 
     @Override
-    public JsonNode getSample() {
+    protected JsonNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.INTEGER, schema)) return null;
         return LongNode.valueOf(random.nextLong());
     }

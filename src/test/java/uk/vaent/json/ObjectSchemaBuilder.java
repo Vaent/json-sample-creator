@@ -2,6 +2,7 @@ package uk.vaent.json;
 
 import static uk.vaent.json.TestHelper.schemaFor;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import uk.vaent.json.type.JsonType;
@@ -18,6 +19,18 @@ public class ObjectSchemaBuilder {
             schema.set("properties", JsonNodeFactory.instance.objectNode());
         }
         return (ObjectNode) schema.get("properties");
+    }
+
+    public ObjectSchemaBuilder setConstProperty(String newPropertyName, int constValue) {
+        JsonNode constSchema = JsonNodeFactory.instance.objectNode().put("const", constValue);
+        propertiesObject().set(newPropertyName, constSchema);
+        return this;
+    }
+
+    public ObjectSchemaBuilder setConstProperty(String newPropertyName, String constValue) {
+        JsonNode constSchema = JsonNodeFactory.instance.objectNode().put("const", constValue);
+        propertiesObject().set(newPropertyName, constSchema);
+        return this;
     }
 
     public ObjectSchemaBuilder setProperty(String newPropertyName, ObjectNode newPropertySchema) {

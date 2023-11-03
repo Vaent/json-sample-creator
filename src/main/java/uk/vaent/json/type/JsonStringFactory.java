@@ -18,7 +18,7 @@ public class JsonStringFactory extends JsonTypeFactory {
     }
 
     @Override
-    public JsonNode getSample() {
+    protected JsonNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.STRING, schema)) return null;
         return TextNode.valueOf(generexDefault.random());
     }

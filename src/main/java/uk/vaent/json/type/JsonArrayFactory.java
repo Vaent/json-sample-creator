@@ -14,7 +14,8 @@ public class JsonArrayFactory extends JsonTypeFactory {
         super(schema);
     }
 
-    public JsonNode getSample() {
+    @Override
+    protected JsonNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.ARRAY, schema)) return null;
         return JsonNodeFactory.instance.arrayNode();
     }

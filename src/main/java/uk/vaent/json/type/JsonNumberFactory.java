@@ -20,7 +20,7 @@ public class JsonNumberFactory extends JsonTypeFactory {
     }
 
     @Override
-    public JsonNode getSample() {
+    protected JsonNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.NUMBER, schema)) return null;
         return DoubleNode.valueOf(random.nextDouble());
     }

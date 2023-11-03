@@ -37,4 +37,24 @@ class JsonObjectFactoryTest {
         assertTrue(sampleObject.path("nestedObjectField").isObject());
         assertTrue(sampleObject.path("nestedObjectField").path("stringField").isTextual());
     }
+
+    @Test
+    public void testConstNumericProperty() {
+        JsonNode objectSchema = new ObjectSchemaBuilder()
+            .setConstProperty("constProperty", 1234567)
+            .build();
+        JsonNode sampleObject = config.getJsonSampleFactory(objectSchema).getSample();
+        assertNotNull(sampleObject);
+        assertEquals(1234567, sampleObject.get("constProperty").numberValue());
+    }
+
+    @Test
+    public void testConstStringProperty() {
+        JsonNode objectSchema = new ObjectSchemaBuilder()
+            .setConstProperty("constProperty", "Constant value")
+            .build();
+        JsonNode sampleObject = config.getJsonSampleFactory(objectSchema).getSample();
+        assertNotNull(sampleObject);
+        assertEquals("Constant value", sampleObject.get("constProperty").textValue());
+    }
 }

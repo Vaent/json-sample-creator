@@ -15,7 +15,7 @@ public class JsonNullFactory extends JsonTypeFactory {
     }
 
     @Override
-    public JsonNode getSample() {
+    protected JsonNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.NULL, schema)) return null;
         return NullNode.getInstance();
     }

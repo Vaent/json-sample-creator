@@ -21,7 +21,7 @@ public class JsonObjectFactory extends JsonTypeFactory {
     }
 
     @Override
-    public ObjectNode getSample() {
+    protected ObjectNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.OBJECT, schema)) return null;
         ObjectNode sample = JsonNodeFactory.instance.objectNode();
         JsonNode propertiesSchema = schema.get("properties");
