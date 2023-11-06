@@ -5,7 +5,7 @@ A tool for generating sample JSON data based on user-supplied schemas and parame
 Example usage (JAR):
 
 ```
-java -jar -DschemaSourceDirectory="file:///C:/example/json-schemas" json-sample-creator-0.2.0.jar boolean.schema.json string.schema.json
+java -jar -DschemaSourceDirectory="file:///C:/example/json-schemas" json-sample-creator-0.2.1.jar boolean.schema.json string.schema.json
 ```
 
 Example usage (Maven):
@@ -22,7 +22,7 @@ Output for << file:///C:/example/json-schemas/string.schema.json >> follows...
 "rnd42"
 ```
 
-With version 0.2.0 the app takes schema file names as its arguments, instead of requiring the schema contents to be passed in directly. This update also processes each argument in turn rather than only considering the first argument.
+Since version 0.2.0 the app takes schema file names as its arguments, instead of requiring the schema contents to be passed in directly. This update also processes each argument in turn rather than only considering the first argument.
 
 Each schema file should be located in the directory specified by the `-DschemaSourceDirectory` option. System file paths must be prefixed with `file:///` or they will be treated as classpath resources. If no directory is specified via the command line, the property will be picked up from `application.properties` through Spring configuration (by default the directory path is an empty string, referencing the classpath).
 
@@ -33,6 +33,10 @@ Spring Boot functionality has been added throughout the application code.
 The various JSON type factories implement a common interface with a single method which accepts a JSON schema (unmarshalled into a JsonNode) and returns a sample of the appropriate type, or constant value if such a constraint exists in the schema.
 
 JsonSampleCreator immediately defers to the factories to handle sample production when the app is run with at least one argument identifying a JSON schema file.
+
+### Schema dialect
+
+This is set from the root document if present, otherwise from application.properties (default is 2020-12). The Spring configuration class makes the dialect available to factories and other classes which may need to handle keywords differently depending on the JSON Schema version in force.
 
 ### Constant values
 
@@ -46,12 +50,17 @@ All factories validate the `type` keyword of the schema passed in (unless insert
 
 If a type array like `"type":["integer","boolean"]` is supplied in the schema, provided the array contains only valid JSON types, a type will be selected from the array elements before fetching the relevant factory.
 
-If the schema contains no type definition, or the type keyword is an empty array, a type is selected at random before fetching its factory (all types are valid in the absence of a constraint).
+If the schema contains no type definition, or the type keyword is an empty array, a value type is selected at random before fetching its factory (all types are valid in the absence of a constraint). Container types are no longer selected if not specified by the schema, as lack of control over the depth of nesting readily leads to stack overflow.
 
 ### Features implemented for each JSON type
 
 - *JsonArrayFactory*
-  - ignores details in schema, always returns an empty array
+  - returns an array containing samples obtained from the appropriate factory/factories
+  - definitions for tuples and for general items are used if present in the schema; if neither is present, the array will be populated with random values
+  - maxItems and minItems are taken from the schema if present, otherwise default values from application.properties are used; an exception is raised if minItems is greater than maxItems
+  - items will be added to the generated array until either:
+    - the array size is equal to maxItems, or
+    - the tuple is complete (only if general items are explicitly forbidden by the schema, and the array size hasn't already reached maxItems)
 - *JsonBooleanFactory*
   - ignores details in schema, always returns a random true/false value
 - *JsonIntegerFactory*
@@ -65,3 +74,9 @@ If the schema contains no type definition, or the type keyword is an empty array
   - ignores any other constraints in the schema
 - *JsonStringFactory*
   - ignores details in schema, always returns a random string of 1-10 alphanumeric characters
+
+## Limitations
+
+Schemas passed into the app are generally assumed to be valid, and are only minimally tested. Executing the app with schemas containing any invalid syntax (according to the relevant dialect) may result in uncaught exceptions and premature termination with null output.
+
+Vocabularies are not inspected.

@@ -1,0 +1,9 @@
+{
+    "type": "array",
+    "prefixItems": [
+        {"const": "First element"},
+        {"const": "Second element"},
+        {"const": "Third element"}
+    ],
+    "items": false
+}

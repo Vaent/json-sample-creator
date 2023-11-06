@@ -1,0 +1,7 @@
+{
+    "type": "array",
+    "prefixItems": [
+        {"const": "Unique array entry"}
+    ],
+    "items": false
+}

@@ -17,6 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(classes = JsonSampleCreator.class)
 @TestPropertySource("classpath:config/application-test.properties")
 class JsonSampleCreatorTest {
+    private static final String arrayOutputPattern = "^\\[.*\\]$";
     private static final String stringOutputPattern = "^\".*\"$";
 
     @Autowired
@@ -40,7 +41,7 @@ class JsonSampleCreatorTest {
     @Test
     public void testCreateArray() {
         executeWith("array.schema.json");
-        assertEquals("[]", output);
+        assertTrue(output.matches(arrayOutputPattern));
     }
 
     @Test

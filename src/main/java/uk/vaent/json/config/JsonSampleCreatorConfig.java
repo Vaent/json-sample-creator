@@ -11,6 +11,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import uk.vaent.json.JsonSchemaParser;
 import uk.vaent.json.type.*;
+import uk.vaent.json.type.array.*;
 
 @Configuration
 @PropertySource("classpath:config/application.properties")
@@ -41,9 +42,20 @@ public class JsonSampleCreatorConfig {
 
     @Bean(autowireCandidate = false)
     @Scope(BeanDefinition.SCOPE_PROTOTYPE)
+    public ArrayItemDefinitions arrayItemDefinitions(JsonNode schema) {
+        return switch (jsonSchemaDialect) {
+            case _2020_12 -> new ArrayItemDefinitions2020_12(schema);
+            case _2019_09 -> new ArrayItemDefinitions2019_09(schema);
+            case DRAFT_07, DRAFT_06 -> new ArrayItemDefinitionsDraft06AndDraft07(schema);
+            case DRAFT_04 -> new ArrayItemDefinitionsDraft04(schema);
+        };
+    }
+
+    @Bean(autowireCandidate = false)
+    @Scope(BeanDefinition.SCOPE_PROTOTYPE)
     public JsonTypeFactory getJsonSampleFactory(JsonNode schema) {
         return switch (JsonSchemaParser.getType(schema)) {
-            case ARRAY -> new JsonArrayFactory(schema);
+            case ARRAY -> new JsonArrayFactory(schema, arrayItemDefinitions(schema));
             case BOOLEAN -> new JsonBooleanFactory(schema);
             case INTEGER -> new JsonIntegerFactory(schema);
             case NULL -> new JsonNullFactory(schema);

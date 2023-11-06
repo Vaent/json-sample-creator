@@ -1,0 +1,7 @@
+{
+    "type": "array",
+    "items": [
+        {"const": "Unique array entry"}
+    ],
+    "additionalItems": false
+}

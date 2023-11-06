@@ -6,7 +6,7 @@
 
     <groupId>uk.vaent</groupId>
     <artifactId>json-sample-creator</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
 
     <properties>
         <maven.compiler.source>19</maven.compiler.source>

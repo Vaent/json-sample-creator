@@ -1,0 +1,7 @@
+{
+    "type": "array",
+    "items": [
+        {"const": "First element"},
+        {"const": "Second element"}
+    ]
+}
