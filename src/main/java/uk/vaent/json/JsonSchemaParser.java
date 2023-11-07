@@ -1,49 +1,60 @@
 package uk.vaent.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import uk.vaent.json.type.JsonType;
 
 public class JsonSchemaParser {
     public static final String INVALID_TYPE_FORMAT_MESSAGE = "Format of type definition in schema is invalid";
-    public static final String INVALID_TYPE_NAME_MESSAGE = "Type declared in schema was not recognised";
     private static final JsonType[] jsonTypesCached = JsonType.values();
     private static final List<JsonType> jsonValueTypes = Stream.of(JsonType.values())
         .filter(type -> (type != JsonType.ARRAY) && (type != JsonType.OBJECT))
         .toList();
-
     private static final Random random = new Random();
 
     public static JsonType getType(JsonNode schema) {
         if (BooleanNode.TRUE.equals(schema)) return selectFromValueTypes(); // all values are valid for the `true` schema
         if (!schema.isObject()) return null;
-        JsonNode type = schema.get("type");
-        if (type == null) {
-            return selectFromValueTypes();
-        } else if (type.isTextual()) {
-            try {
-                return JsonType.valueOf(type.textValue().toUpperCase());
-            } catch (IllegalArgumentException ex) {
-                throw new IllegalArgumentException(INVALID_TYPE_NAME_MESSAGE, ex);
-            }
-        } else if (type.isArray()) {
-            if (type.isEmpty()) return selectFromValueTypes();
-            type.forEach(t -> {
-                if (!t.isTextual()) throw new IllegalArgumentException(INVALID_TYPE_FORMAT_MESSAGE);
-                try {
-                    JsonType.valueOf(t.textValue().toUpperCase());
-                } catch (IllegalArgumentException ex) {
-                    throw new IllegalArgumentException(INVALID_TYPE_NAME_MESSAGE, ex);
-                }
-            });
-            JsonNode randomType = type.get(random.nextInt(type.size()));
-            return JsonType.valueOf(randomType.textValue().toUpperCase());
-        } else {
-            throw new IllegalArgumentException(INVALID_TYPE_FORMAT_MESSAGE);
-        }
+        return processTypeKeyword(schema,
+            JsonType::fromTextNode,
+            schemaType -> StreamSupport.stream(schemaType.spliterator(), true)
+                .map(TextNode.class::cast)
+                .map(JsonType::fromTextNode)
+                .findAny().orElseGet(JsonSchemaParser::selectFromValueTypes),
+            JsonSchemaParser::selectFromValueTypes);
+    }
+
+    public static boolean validate(JsonType type, JsonNode schema) {
+        if (BooleanNode.TRUE.equals(schema)) return true; // all values are valid for the `true` schema
+        if (!schema.isObject()) return false;
+        return processTypeKeyword(schema,
+            type.matcher(),
+            schemaType -> schemaType.isEmpty() // all values are valid if no type is specified
+                || StreamSupport.stream(schemaType.spliterator(), true)
+                    .map(TextNode.class::cast)
+                    .anyMatch(type.matcher()::apply),
+            () -> true);
+    }
+
+// Private methods
+
+    private static <R> R processTypeKeyword(JsonNode parentSchema,
+                                            Function<TextNode, R> actionIfString,
+                                            Function<ArrayNode, R> actionIfArray,
+                                            Supplier<R> actionIfNull) {
+        JsonNode type = parentSchema.get("type");
+        if (type == null) return actionIfNull.get();
+        if (type.isTextual()) return actionIfString.apply((TextNode)type);
+        if (type.isArray()) return actionIfArray.apply((ArrayNode)type);
+        throw new IllegalArgumentException(INVALID_TYPE_FORMAT_MESSAGE);
     }
 
     /* This legacy method is preserved, but should be avoided in favour of selectFromValueTypes()
@@ -54,24 +65,5 @@ public class JsonSchemaParser {
 
     private static JsonType selectFromValueTypes() {
         return jsonValueTypes.get(random.nextInt(jsonValueTypes.size()));
-    }
-
-    public static boolean validate(JsonType type, JsonNode schema) {
-        if (BooleanNode.TRUE.equals(schema)) return true; // all values are valid for the `true` schema
-        if (!schema.isObject()) return false;
-        JsonNode schemaType = schema.get("type");
-        if (schemaType == null) {
-            return true;
-        } else if (schemaType.isTextual()) {
-            return type.equals(JsonType.valueOf(schemaType.textValue().toUpperCase()));
-        } else if (schemaType.isArray()) {
-            if (schemaType.isEmpty()) return true;
-            for (JsonNode t : schemaType) {
-                if (type.equals(JsonType.valueOf(t.textValue().toUpperCase()))) return true;
-            }
-            return false;
-        } else {
-            throw new IllegalArgumentException(INVALID_TYPE_FORMAT_MESSAGE);
-        }
     }
 }

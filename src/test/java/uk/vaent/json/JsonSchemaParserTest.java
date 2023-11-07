@@ -38,8 +38,7 @@ class JsonSchemaParserTest {
 
     @Test
     public void testGetInvalidType() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> JsonSchemaParser.getType(schemaFor("foo")));
-        assertEquals(JsonSchemaParser.INVALID_TYPE_NAME_MESSAGE, ex.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> JsonSchemaParser.getType(schemaFor("foo")));
     }
 
     @Test
