@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -17,6 +18,7 @@ import uk.vaent.json.config.JsonSampleCreatorConfig;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class JsonArrayFactory extends JsonTypeFactory {
     @Autowired private JsonSampleCreatorConfig config;
+    @Autowired private Random random;
 
     private final Iterable<JsonNode> arrayItems;
     private int maxItems;
@@ -41,10 +43,15 @@ public class JsonArrayFactory extends JsonTypeFactory {
     protected JsonNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.ARRAY, schema)) return null;
         ArrayNode sample = JsonNodeFactory.instance.arrayNode();
-        int itemCount = 0;
         Iterator<JsonNode> itemSchemas = arrayItems.iterator();
-        while (itemCount++ < maxItems) {
-            if (!itemSchemas.hasNext()) break;
+        int itemCount = 0;
+        int targetItemCount = random.nextInt(minItems, maxItems + 1);
+        while (itemCount++ < targetItemCount) {
+            if (!itemSchemas.hasNext()) {
+                if (sample.size() < minItems) System.out.println("Generated array size (" + sample.size()
+                    + ") less than minItems (" + minItems + ") for schema " + schema);
+                break;
+            }
             sample.add(config.getJsonSampleFactory(itemSchemas.next()).getSample());
         }
         return sample;

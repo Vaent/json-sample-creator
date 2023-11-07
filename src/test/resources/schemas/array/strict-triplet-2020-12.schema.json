@@ -5,5 +5,6 @@
         {"const": "Second element"},
         {"const": "Third element"}
     ],
+    "minItems": 3,
     "items": false
 }

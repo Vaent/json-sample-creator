@@ -3,5 +3,6 @@
     "prefixItems": [
         {"const": "Unique array entry"}
     ],
+    "minItems": 1,
     "items": false
 }

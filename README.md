@@ -5,7 +5,7 @@ A tool for generating sample JSON data based on user-supplied schemas and parame
 Example usage (JAR):
 
 ```
-java -jar -DschemaSourceDirectory="file:///C:/example/json-schemas" json-sample-creator-0.2.1.jar boolean.schema.json string.schema.json
+java -jar -DschemaSourceDirectory="file:///C:/example/json-schemas" json-sample-creator-0.2.2.jar boolean.schema.json string.schema.json
 ```
 
 Example usage (Maven):
@@ -16,9 +16,11 @@ mvn spring-boot:run -Dspring-boot.run.jvmArguments="-DschemaSourceDirectory=file
 Example output:
 ```
 Output for << file:///C:/example/json-schemas/boolean.schema.json >> follows...
+Schema dialect: _2020_12
 false
 
 Output for << file:///C:/example/json-schemas/string.schema.json >> follows...
+Schema dialect: _2020_12
 "rnd42"
 ```
 
@@ -55,12 +57,14 @@ If the schema contains no type definition, or the type keyword is an empty array
 ### Features implemented for each JSON type
 
 - *JsonArrayFactory*
-  - returns an array containing samples obtained from the appropriate factory/factories
-  - definitions for tuples and for general items are used if present in the schema; if neither is present, the array will be populated with random values
-  - maxItems and minItems are taken from the schema if present, otherwise default values from application.properties are used; an exception is raised if minItems is greater than maxItems
+  - returns an array containing samples obtained from additional factories as determined by the schema for each array item
+  - definitions for tuples and for general items are used if present in the schema
+  - if a schema for general items is not supplied by the relevant keyword, the `true` schema will be used for general items
+  - maxItems and minItems are taken from the schema if present, otherwise default values from application.properties are used. An exception is raised if minItems is greater than maxItems when both values are taken from the schema; if only one limit is taken from the schema, it automatically has priority over the other (default) limit if they are in conflict; if default values are used for both limits and there is a conflict, minItems takes priority
+  - a target array length between minItems and maxItems (inclusive) is determined at random
   - items will be added to the generated array until either:
-    - the array size is equal to maxItems, or
-    - the tuple is complete (only if general items are explicitly forbidden by the schema, and the array size hasn't already reached maxItems)
+    - the array length is equal to the target; or
+    - the tuple is complete, if the schema explicitly forbids general items and the target length exceeds the tuple
 - *JsonBooleanFactory*
   - ignores details in schema, always returns a random true/false value
 - *JsonIntegerFactory*
