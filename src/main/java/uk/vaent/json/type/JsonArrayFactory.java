@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.vaent.json.JsonSchemaParser;
 import uk.vaent.json.config.JsonSampleCreatorConfig;
+import uk.vaent.json.type.array.ArrayItemDefinitions;
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
@@ -20,11 +21,11 @@ public class JsonArrayFactory extends JsonTypeFactory {
     @Autowired private JsonSampleCreatorConfig config;
     @Autowired private Random random;
 
-    private final Iterable<JsonNode> arrayItems;
+    private final ArrayItemDefinitions arrayItems;
     private int maxItems;
     private int minItems;
 
-    public JsonArrayFactory(JsonNode schema, Iterable<JsonNode> itemDefinitionsSupplier) {
+    public JsonArrayFactory(JsonNode schema, ArrayItemDefinitions itemDefinitionsSupplier) {
         super(schema);
         this.arrayItems = itemDefinitionsSupplier;
     }

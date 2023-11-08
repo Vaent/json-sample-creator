@@ -1,8 +1,5 @@
 package uk.vaent.json.type.array;
 
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
 class ArrayItemDefinitionsDraft06AndDraft07Test extends ArrayItemDefinitionsBaseTest {
     ArrayItemDefinitionsDraft06AndDraft07Test() {
         classUnderTest = ArrayItemDefinitions2019_09.class;

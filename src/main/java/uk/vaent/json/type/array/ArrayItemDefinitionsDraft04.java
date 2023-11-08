@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import org.springframework.lang.NonNull;
 
-public class ArrayItemDefinitionsDraft04 extends ArrayItemDefinitions {
+public class ArrayItemDefinitionsDraft04 extends ArrayItemDefinitionsBase {
     public ArrayItemDefinitionsDraft04(JsonNode arraySchema) {
         super(arraySchema);
     }
