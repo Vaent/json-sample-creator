@@ -40,6 +40,10 @@ JsonSampleCreator immediately defers to the factories to handle sample productio
 
 This is set from the root document if present, otherwise from application.properties (default is 2020-12). The Spring configuration class makes the dialect available to factories and other classes which may need to handle keywords differently depending on the JSON Schema version in force.
 
+### Boolean schemas
+
+At various points in the application code, the `true` schema is accepted as permitting arbitrary values, without checking whether the declared dialect supports this usage in a specific context. [As stated below](#limitations) there is no guarantee that the application will catch syntax errors in the schemas fed to it.
+
 ### Constant values
 
 These are naively inserted into samples instead of generating a node based on a declared type, if the schema contains the `const` keyword.
@@ -81,6 +85,8 @@ If the schema contains no type definition, or the type keyword is an empty array
 
 ## Limitations
 
-Schemas passed into the app are generally assumed to be valid, and are only minimally tested. Executing the app with schemas containing any invalid syntax (according to the relevant dialect) may result in uncaught exceptions and premature termination with null output.
+Schemas passed into the app are generally assumed to be valid, and are only minimally tested. Executing the app with schemas containing any invalid syntax (according to the relevant dialect) may result in uncaught exceptions and premature termination with null output. Equally, errors in the schema may be silently ignored in some cases, so this app should not be relied on as a schema validator.
 
 Vocabularies are not inspected.
+
+Dialects earlier than draft 4 are not recognised by the application. Any values of `$schema` which aren't detailed in the [JsonSchemaDialect](src/main/java/uk/vaent/json/config/JsonSchemaDialect.java) class will be ignored - this may include any future releases (the codebase is not guaranteed to keep pace with updates to the specification).
