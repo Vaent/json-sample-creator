@@ -39,6 +39,10 @@ public abstract class ArrayItemDefinitionsBase implements ArrayItemDefinitions {
     @NonNull
     protected abstract JsonNode getGeneralItemDefinition(JsonNode arraySchema);
 
+    public boolean isClosedTuple() {
+        return BooleanNode.FALSE.equals(generalItems);
+    }
+
     @Override
     @NonNull
     public Iterator<JsonNode> iterator() {
@@ -52,6 +56,10 @@ public abstract class ArrayItemDefinitionsBase implements ArrayItemDefinitions {
      * @return the appropriate keyword.
      */
     protected abstract String tupleKeyword();
+
+    public int tupleLength() {
+        return tuple.size();
+    }
 
     private class ArrayItemDefinitionsIterator implements Iterator<JsonNode> {
         private int cursor;

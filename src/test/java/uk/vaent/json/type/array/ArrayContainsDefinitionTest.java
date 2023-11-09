@@ -29,11 +29,27 @@ class ArrayContainsDefinitionTest {
     }
 
     @Test
-    public void identifiesLastPossibleMatch() {
+    public void identifiesLastPossibleMatchForClosedTuple() {
         mockIteratorReturnsExactly(0, 1, 42, 3, 42, 5, 6);
         when(mockSchema.get("contains")).thenReturn(constant(42));
         ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
         assertEquals(4, arrayContainsDefinition.lastPossibleMatchIndex());
+    }
+
+    @Test
+    public void identifiesLastPossibleMatchForOpenEndedTuple() {
+        mockIteratorReturnsAtLeast(0, 1, 42, 3, 42, 5, 6);
+        when(mockSchema.get("contains")).thenReturn(constant(42));
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(4, arrayContainsDefinition.lastPossibleMatchIndex());
+    }
+
+    @Test
+    public void whenGeneralItemIsMatchThenLastPossibleMatchIsMaximumPossibleIndex() {
+        mockIteratorReturnsAtLeast(0, 1, 42, 3, 42, 5, 6, 42);
+        when(mockSchema.get("contains")).thenReturn(constant(42));
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(Integer.MAX_VALUE, arrayContainsDefinition.lastPossibleMatchIndex());
     }
 
     @Test
@@ -50,6 +66,23 @@ class ArrayContainsDefinitionTest {
         when(mockSchema.get("contains")).thenReturn(null);
         ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
         assertEquals(0, arrayContainsDefinition.firstPossibleMatchIndex());
+    }
+
+    @Test
+    public void lastElementOfClosedTupleIsMatchWhenSchemaHasNoContainsKeyword() {
+        when(mockSchema.get("contains")).thenReturn(null);
+        when(mockItemDefinitions.isClosedTuple()).thenReturn(true);
+        when(mockItemDefinitions.tupleLength()).thenReturn(7);
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(6, arrayContainsDefinition.lastPossibleMatchIndex());
+    }
+
+    @Test
+    public void whenOpenEndedSchemaHasNoContainsKeywordThenLastPossibleMatchIsMaximumPossibleIndex() {
+        when(mockSchema.get("contains")).thenReturn(null);
+        when(mockItemDefinitions.isClosedTuple()).thenReturn(false);
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(Integer.MAX_VALUE, arrayContainsDefinition.lastPossibleMatchIndex());
     }
 
     private ObjectNode constant(long value) {
@@ -74,15 +107,21 @@ class ArrayContainsDefinitionTest {
 
     private void mockIteratorReturns(boolean isOpenEnded, long firstValue, long... otherValues) {
         when(mockItemDefinitions.iterator()).thenReturn(mockItemDefinitionsIterator);
-        setIteratorHasNextCount(otherValues.length + 1, isOpenEnded);
+        if (isOpenEnded) {
+            when(mockItemDefinitions.tupleLength()).thenReturn(otherValues.length);
+            when(mockItemDefinitionsIterator.hasNext()).thenReturn(true);
+        } else {
+            when(mockItemDefinitions.tupleLength()).thenReturn(otherValues.length + 1);
+            setIteratorHasNextCount(otherValues.length + 1);
+        }
         when(mockItemDefinitionsIterator.next()).thenReturn(constant(firstValue), constants(otherValues));
     }
 
-    private void setIteratorHasNextCount(int iteratorLength, boolean isOpenEnded) {
+    private void setIteratorHasNextCount(int iteratorLength) {
         OngoingStubbing<Boolean> stub = when(mockItemDefinitionsIterator.hasNext());
         for (int i = 0; i < iteratorLength; i++) {
             stub = stub.thenReturn(true);
         }
-        stub.thenReturn(isOpenEnded);
+        stub.thenReturn(false);
     }
 }

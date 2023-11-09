@@ -1,9 +1,10 @@
 package uk.vaent.json.type.array;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import java.util.Iterator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,27 @@ abstract class ArrayItemDefinitionsBaseTest {
     @Test
     public void openDoublet() throws Exception {
         test(openDoubletSchema, 2, true);
+    }
+
+    @Test
+    public void correctlyReportsClosedTuple() throws Exception {
+        assertTrue(definitions(strictTripletSchema).isClosedTuple());
+    }
+
+    @Test
+    public void correctlyReportsOpenEndedSchema() throws Exception {
+        assertFalse(definitions(openDoubletSchema).isClosedTuple());
+        ArrayItemDefinitions trueSchema = classUnderTest.getDeclaredConstructor(JsonNode.class).newInstance(BooleanNode.TRUE);
+        assertFalse(trueSchema.isClosedTuple());
+    }
+
+    @Test
+    public void correctlyReportsTupleLength() throws Exception {
+        ArrayItemDefinitions trueSchema = classUnderTest.getDeclaredConstructor(JsonNode.class).newInstance(BooleanNode.TRUE);
+        assertEquals(0, trueSchema.tupleLength());
+        assertEquals(1, definitions(strictSingletSchema).tupleLength());
+        assertEquals(2, definitions(openDoubletSchema).tupleLength());
+        assertEquals(3, definitions(strictTripletSchema).tupleLength());
     }
 
     private ArrayItemDefinitions definitions(String schemaFilePath) throws Exception {
