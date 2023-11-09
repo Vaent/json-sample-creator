@@ -1,48 +1,34 @@
 package uk.vaent.json.type.array;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class ArrayContainsDefinition {
     private final JsonNode containsSchema;
     private final ArrayItemDefinitions itemDefinitions;
 
+    public final boolean matchesGeneralItems;
+    public final List<Integer> matchingIndices;
+
     public ArrayContainsDefinition(JsonNode parentSchema, ArrayItemDefinitions itemDefinitions) {
         this.itemDefinitions = itemDefinitions;
         containsSchema = parentSchema.get("contains");
+        matchingIndices = Collections.unmodifiableList(determineMatches());
+        matchesGeneralItems = (matchingIndices.contains(itemDefinitions.tupleLength()));
     }
 
-    public int firstPossibleMatchIndex() {
-        if (containsSchema == null) return 0;
+    private List<Integer> determineMatches() {
+        List<Integer> matches = new ArrayList<>();
         int testIndex = 0;
         for (JsonNode definition : itemDefinitions) {
-            if (containsSchema.equals(definition)) return testIndex;
+            if (containsSchema == null || containsSchema.equals(definition)) matches.add(testIndex);
             if (testIndex == itemDefinitions.tupleLength()) break;
             testIndex++;
         }
-        throw matchNotFound();
-    }
-
-    public int lastPossibleMatchIndex() {
-        if (containsSchema == null) {
-            return itemDefinitions.isClosedTuple() ? (itemDefinitions.tupleLength() - 1) : Integer.MAX_VALUE;
-        }
-        int testIndex = 0;
-        int mostRecentMatchIndex = -1;
-        for (JsonNode definition : itemDefinitions) {
-            if (containsSchema.equals(definition)) mostRecentMatchIndex = testIndex;
-            if (testIndex == itemDefinitions.tupleLength()) break;
-            testIndex++;
-        }
-        if (mostRecentMatchIndex >= itemDefinitions.tupleLength()) {
-            return Integer.MAX_VALUE;
-        } else if (mostRecentMatchIndex >= 0) {
-            return mostRecentMatchIndex;
-        }
-        throw matchNotFound();
-    }
-
-    private NoSuchElementException matchNotFound() {
-        return new NoSuchElementException("No item definition was found matching \"contains\": " + containsSchema);
+        if (matches.isEmpty()) throw new NoSuchElementException("No item definition was found matching \"contains\": " + containsSchema);
+        return matches;
     }
 }
