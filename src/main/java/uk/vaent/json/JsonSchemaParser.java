@@ -3,7 +3,6 @@ package uk.vaent.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
@@ -24,10 +23,11 @@ public class JsonSchemaParser {
         if (BooleanNode.TRUE.equals(schema)) return selectFromValueTypes(); // all values are valid for the `true` schema
         if (!schema.isObject()) return null;
         return processTypeKeyword(schema,
-            JsonType::fromTextNode,
+            schemaType -> JsonType.valueOf(schemaType.toUpperCase()),
             schemaType -> StreamSupport.stream(schemaType.spliterator(), true)
-                .map(TextNode.class::cast)
-                .map(JsonType::fromTextNode)
+                .map(JsonNode::textValue)
+                .map(String::toUpperCase)
+                .map(JsonType::valueOf)
                 .findAny().orElseGet(JsonSchemaParser::selectFromValueTypes),
             JsonSchemaParser::selectFromValueTypes);
     }
@@ -36,23 +36,23 @@ public class JsonSchemaParser {
         if (BooleanNode.TRUE.equals(schema)) return true; // all values are valid for the `true` schema
         if (!schema.isObject()) return false;
         return processTypeKeyword(schema,
-            type.matcher(),
+            type.matcher,
             schemaType -> schemaType.isEmpty() // all values are valid if no type is specified
                 || StreamSupport.stream(schemaType.spliterator(), true)
-                    .map(TextNode.class::cast)
-                    .anyMatch(type.matcher()::apply),
+                    .map(JsonNode::textValue)
+                    .anyMatch(type.matcher::apply),
             () -> true);
     }
 
 // Private methods
 
     private static <R> R processTypeKeyword(JsonNode parentSchema,
-                                            Function<TextNode, R> actionIfString,
+                                            Function<String, R> actionIfString,
                                             Function<ArrayNode, R> actionIfArray,
                                             Supplier<R> actionIfNull) {
         JsonNode type = parentSchema.get("type");
         if (type == null) return actionIfNull.get();
-        if (type.isTextual()) return actionIfString.apply((TextNode)type);
+        if (type.isTextual()) return actionIfString.apply(type.textValue());
         if (type.isArray()) return actionIfArray.apply((ArrayNode)type);
         throw new IllegalArgumentException(INVALID_TYPE_FORMAT_MESSAGE);
     }

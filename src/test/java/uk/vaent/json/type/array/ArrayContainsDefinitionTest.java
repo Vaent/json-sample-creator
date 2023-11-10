@@ -92,6 +92,33 @@ class ArrayContainsDefinitionTest {
         assertEquals(List.of(0, 1, 3, 5, 6), arrayContainsDefinition.matchingIndices);
     }
 
+    @Test
+    public void identifiesTypeDefinitionsMatchingStringConstant() {
+        mockIteratorReturnsTypes(false, "string", "integer", "string", "null");
+        when(mockSchema.get("contains")).thenReturn(schemaForConstant("foo"));
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(List.of(0, 2), arrayContainsDefinition.matchingIndices);
+    }
+
+    @Test
+    public void identifiesTypeDefinitionsMatchingIntegerConstant() {
+        mockIteratorReturnsTypes(false, "string", "integer", "number", "null");
+        when(mockSchema.get("contains")).thenReturn(schemaForConstant(42));
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(List.of(1, 2), arrayContainsDefinition.matchingIndices);
+    }
+
+    private void configureMocks(boolean isOpenEnded, int tupleLength) {
+        when(mockItemDefinitions.iterator()).thenReturn(mockItemDefinitionsIterator);
+        if (isOpenEnded) {
+            when(mockItemDefinitions.tupleLength()).thenReturn(tupleLength);
+            when(mockItemDefinitionsIterator.hasNext()).thenReturn(true);
+        } else {
+            when(mockItemDefinitions.tupleLength()).thenReturn(tupleLength + 1);
+            setIteratorHasNextCount(tupleLength + 1);
+        }
+    }
+
     private void mockIteratorReturnsExactly(Object firstValue, Object... otherValues) {
         mockIteratorReturns(false, firstValue, otherValues);
     }
@@ -101,15 +128,14 @@ class ArrayContainsDefinitionTest {
     }
 
     private void mockIteratorReturns(boolean isOpenEnded, Object firstValue, Object... otherValues) {
-        when(mockItemDefinitions.iterator()).thenReturn(mockItemDefinitionsIterator);
-        if (isOpenEnded) {
-            when(mockItemDefinitions.tupleLength()).thenReturn(otherValues.length);
-            when(mockItemDefinitionsIterator.hasNext()).thenReturn(true);
-        } else {
-            when(mockItemDefinitions.tupleLength()).thenReturn(otherValues.length + 1);
-            setIteratorHasNextCount(otherValues.length + 1);
-        }
+        configureMocks(isOpenEnded, otherValues.length);
         when(mockItemDefinitionsIterator.next()).thenReturn(schemaForConstant(firstValue), schemasForConstants(otherValues));
+    }
+
+    private void mockIteratorReturnsTypes(boolean isOpenEnded, String firstType, String... otherTypes) {
+        configureMocks(isOpenEnded, otherTypes.length);
+        OngoingStubbing<JsonNode> stub = when(mockItemDefinitionsIterator.next()).thenReturn(schemaForType(firstType));
+        for (String type : otherTypes) stub = stub.thenReturn(schemaForType(type));
     }
 
     private void setIteratorHasNextCount(int iteratorLength) {

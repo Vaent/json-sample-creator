@@ -1,7 +1,6 @@
 package uk.vaent.json.type.array;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +45,7 @@ public class ArrayContainsDefinition {
             if (definition.has("const")) {
                 return JsonSchemaParser.validate(JsonType.of(definition.get("const")), containsSchema);
             } else if (definition.has("type")) {
-                return JsonSchemaParser.validate(JsonType.fromTextNode((TextNode)definition.get("type")), containsSchema);
+                return JsonSchemaParser.validate(JsonType.valueOf(definition.get("type").textValue()), containsSchema);
             }
         }
         return false;
