@@ -2,10 +2,9 @@ package uk.vaent.json.type.array;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static uk.vaent.json.TestHelper.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
+import uk.vaent.json.TestHelper;
 
 @ExtendWith(MockitoExtension.class)
 class ArrayContainsDefinitionTest {
@@ -24,7 +24,7 @@ class ArrayContainsDefinitionTest {
     @Test
     public void identifiesAllPossibleMatchesForClosedTuple() {
         mockIteratorReturnsExactly(0, 1, 42, 3, 42, 42, 6);
-        when(mockSchema.get("contains")).thenReturn(constant(42));
+        when(mockSchema.get("contains")).thenReturn(schemaForConstant(42));
         ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
         assertEquals(List.of(2, 4, 5), arrayContainsDefinition.matchingIndices);
     }
@@ -32,7 +32,7 @@ class ArrayContainsDefinitionTest {
     @Test
     public void identifiesAllPossibleMatchesForOpenEndedTuple() {
         mockIteratorReturnsAtLeast(0, 1, 42, 3, 42, 42, 6);
-        when(mockSchema.get("contains")).thenReturn(constant(42));
+        when(mockSchema.get("contains")).thenReturn(schemaForConstant(42));
         ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
         assertEquals(List.of(2, 4, 5), arrayContainsDefinition.matchingIndices);
     }
@@ -40,7 +40,7 @@ class ArrayContainsDefinitionTest {
     @Test
     public void identifiesWhenGeneralItemIsMatch() {
         mockIteratorReturnsAtLeast(0, 1, 42, 3, 42, 5, 6, 42);
-        when(mockSchema.get("contains")).thenReturn(constant(42));
+        when(mockSchema.get("contains")).thenReturn(schemaForConstant(42));
         ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
         assertTrue(arrayContainsDefinition.matchesGeneralItems);
     }
@@ -48,7 +48,7 @@ class ArrayContainsDefinitionTest {
     @Test
     public void throwsExceptionWhenNoMatchFound() {
         mockIteratorReturnsExactly(0, 1, 2, 3, 4, 5, 6);
-        when(mockSchema.get("contains")).thenReturn(constant(42));
+        when(mockSchema.get("contains")).thenReturn(schemaForConstant(42));
         assertThrows(NoSuchElementException.class, () -> new ArrayContainsDefinition(mockSchema, mockItemDefinitions));
     }
 
@@ -68,27 +68,39 @@ class ArrayContainsDefinitionTest {
         assertTrue(arrayContainsDefinition.matchesGeneralItems);
     }
 
-    private ObjectNode constant(long value) {
-        return JsonNodeFactory.instance.objectNode().put("const", value);
+    @Test
+    public void identifiesConstantsMatchingIntegerType() {
+        mockIteratorReturnsExactly("A", "B", "C", 3, "E", 5, "G");
+        when(mockSchema.get("contains")).thenReturn(schemaForType("integer"));
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(List.of(3, 5), arrayContainsDefinition.matchingIndices);
     }
 
-    private ObjectNode[] constants(long... values) {
-        ObjectNode[] arr = new ObjectNode[values.length];
-        for (int i = 0; i < values.length; i++) {
-            arr[i] = constant(values[i]);
-        }
-        return arr;
+    @Test
+    public void identifiesConstantsMatchingStringType() {
+        mockIteratorReturnsExactly("A", "B", "C", 3, "E", 5, "G");
+        when(mockSchema.get("contains")).thenReturn(schemaForType("string"));
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(List.of(0, 1, 2, 4, 6), arrayContainsDefinition.matchingIndices);
     }
 
-    private void mockIteratorReturnsExactly(long firstValue, long... otherValues) {
+    @Test
+    public void identifiesConstantsMatchingTypeArray() {
+        mockIteratorReturnsExactly("A", "B", null, 3, null, 5, "G");
+        when(mockSchema.get("contains")).thenReturn(TestHelper.schemaForType("string", "integer"));
+        ArrayContainsDefinition arrayContainsDefinition = new ArrayContainsDefinition(mockSchema, mockItemDefinitions);
+        assertEquals(List.of(0, 1, 3, 5, 6), arrayContainsDefinition.matchingIndices);
+    }
+
+    private void mockIteratorReturnsExactly(Object firstValue, Object... otherValues) {
         mockIteratorReturns(false, firstValue, otherValues);
     }
 
-    private void mockIteratorReturnsAtLeast(long firstValue, long... otherValues) {
+    private void mockIteratorReturnsAtLeast(Object firstValue, Object... otherValues) {
         mockIteratorReturns(true, firstValue, otherValues);
     }
 
-    private void mockIteratorReturns(boolean isOpenEnded, long firstValue, long... otherValues) {
+    private void mockIteratorReturns(boolean isOpenEnded, Object firstValue, Object... otherValues) {
         when(mockItemDefinitions.iterator()).thenReturn(mockItemDefinitionsIterator);
         if (isOpenEnded) {
             when(mockItemDefinitions.tupleLength()).thenReturn(otherValues.length);
@@ -97,7 +109,7 @@ class ArrayContainsDefinitionTest {
             when(mockItemDefinitions.tupleLength()).thenReturn(otherValues.length + 1);
             setIteratorHasNextCount(otherValues.length + 1);
         }
-        when(mockItemDefinitionsIterator.next()).thenReturn(constant(firstValue), constants(otherValues));
+        when(mockItemDefinitionsIterator.next()).thenReturn(schemaForConstant(firstValue), schemasForConstants(otherValues));
     }
 
     private void setIteratorHasNextCount(int iteratorLength) {

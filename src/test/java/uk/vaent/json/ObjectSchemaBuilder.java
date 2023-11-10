@@ -1,6 +1,6 @@
 package uk.vaent.json;
 
-import static uk.vaent.json.TestHelper.schemaFor;
+import static uk.vaent.json.TestHelper.schemaForType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -39,7 +39,7 @@ public class ObjectSchemaBuilder {
     }
 
     public ObjectSchemaBuilder setProperty(String newPropertyName, JsonType type) {
-        propertiesObject().set(newPropertyName, schemaFor(type.name().toLowerCase()));
+        propertiesObject().set(newPropertyName, schemaForType(type.name().toLowerCase()));
         return this;
     }
 }
