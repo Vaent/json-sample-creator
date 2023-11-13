@@ -1,0 +1,4 @@
+{
+    "type": "array",
+    "contains": {"const": "A string which is unlikely to be generated at random"}
+}

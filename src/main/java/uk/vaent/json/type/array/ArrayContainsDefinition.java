@@ -3,6 +3,7 @@ package uk.vaent.json.type.array;
 import static uk.vaent.json.JsonSchemaParser.INVALID_TYPE_FORMAT_MESSAGE;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,19 +14,21 @@ import uk.vaent.json.type.JsonType;
 
 public class ArrayContainsDefinition {
     private final JsonNode containsSchema;
-    private final ArrayItemDefinitions itemDefinitions;
 
     public final boolean matchesGeneralItems;
+    /**
+     * Unmodifiable list of every position in the generated array capable of satisfying the "contains" schema.
+     * If there is a general item definition, its index is equal to the length of the tuple (which may be zero).
+     */
     public final List<Integer> matchingIndices;
 
     public ArrayContainsDefinition(JsonNode parentSchema, ArrayItemDefinitions itemDefinitions) {
-        this.itemDefinitions = itemDefinitions;
         containsSchema = parentSchema.get("contains");
-        matchingIndices = Collections.unmodifiableList(determineMatches());
+        matchingIndices = Collections.unmodifiableList(determineMatches(itemDefinitions));
         matchesGeneralItems = (matchingIndices.contains(itemDefinitions.tupleLength()));
     }
 
-    private List<Integer> determineMatches() {
+    private List<Integer> determineMatches(ArrayItemDefinitions itemDefinitions) {
         List<Integer> matches = new ArrayList<>();
         int testIndex = 0;
         for (JsonNode definition : itemDefinitions) {
@@ -38,7 +41,7 @@ public class ArrayContainsDefinition {
     }
 
     private boolean containsIsSatisfiedBy(JsonNode definition) {
-        if (containsSchema == null || containsSchema.equals(definition)) return true;
+        if (containsSchema == null || containsSchema.equals(definition) || BooleanNode.TRUE.equals(definition)) return true;
         if (containsSchema.has("const")) {
             JsonNode constValue = containsSchema.get("const");
             if (definition.has("const")) return constValue.equals(definition.get("const"));
@@ -58,6 +61,17 @@ public class ArrayContainsDefinition {
             }
         }
         return false;
+    }
+
+    public List<Integer> matchingIndices(int arraySize) {
+        List<Integer> copyList = new ArrayList<>(matchingIndices.stream().filter(i -> i < arraySize).toList());
+        if (copyList.isEmpty()) throw new IndexOutOfBoundsException("No matches identified for array of size " + arraySize);
+        if (matchesGeneralItems && (arraySize > Collections.max(matchingIndices))) {
+            for (int i = Collections.max(matchingIndices) + 1; i < arraySize; i++) {
+                copyList.add(i);
+            }
+        }
+        return copyList;
     }
 
     private boolean validateType(JsonNode typeTextNode) {

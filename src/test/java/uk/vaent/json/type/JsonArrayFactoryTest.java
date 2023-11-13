@@ -1,10 +1,14 @@
 package uk.vaent.json.type;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static uk.vaent.json.config.JsonSchemaDialect.DRAFT_04;
+import static uk.vaent.json.config.JsonSchemaDialect._2020_12;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import java.io.IOException;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,37 +19,27 @@ import uk.vaent.json.config.JsonSchemaDialect;
 
 @SpringBootTest
 public class JsonArrayFactoryTest {
-    @Autowired
-    private JsonSampleCreatorConfig config;
+    @Autowired private JsonSampleCreatorConfig config;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private ResourceLoader resourceLoader;
 
     @Test
     public void strictSinglet2020_12() throws IOException {
-        config.setJsonSchemaDialect(JsonSchemaDialect._2020_12);
-        JsonNode sample = config.getJsonSampleFactory(schemaFromFile("schemas/array/strict-singlet-2020-12.schema.json"))
-            .getSample();
-        assertTrue(sample.isArray());
+        JsonNode sample = initialise(_2020_12, "schemas/array/strict-singlet-2020-12.schema.json");
         assertTrue(sample.get(0).isTextual());
         assertEquals("Unique array entry", sample.get(0).textValue());
     }
 
     @Test
     public void strictSingletPre2020() throws IOException {
-        config.setJsonSchemaDialect(JsonSchemaDialect.DRAFT_04);
-        JsonNode sample = config.getJsonSampleFactory(schemaFromFile("schemas/array/strict-singlet-pre-2020.schema.json"))
-            .getSample();
-        assertTrue(sample.isArray());
+        JsonNode sample = initialise(DRAFT_04, "schemas/array/strict-singlet-pre-2020.schema.json");
         assertTrue(sample.get(0).isTextual());
         assertEquals("Unique array entry", sample.get(0).textValue());
     }
 
     @Test
     public void strictTriplet2020_12() throws IOException {
-        config.setJsonSchemaDialect(JsonSchemaDialect._2020_12);
-        JsonNode sample = config.getJsonSampleFactory(schemaFromFile("schemas/array/strict-triplet-2020-12.schema.json"))
-            .getSample();
-        assertTrue(sample.isArray());
+        JsonNode sample = initialise(_2020_12, "schemas/array/strict-triplet-2020-12.schema.json");
         assertEquals("First element", sample.get(0).textValue());
         assertEquals("Second element", sample.get(1).textValue());
         assertEquals("Third element", sample.get(2).textValue());
@@ -53,13 +47,33 @@ public class JsonArrayFactoryTest {
 
     @Test
     public void strictTripletPre2020() throws IOException {
-        config.setJsonSchemaDialect(JsonSchemaDialect.DRAFT_04);
-        JsonNode sample = config.getJsonSampleFactory(schemaFromFile("schemas/array/strict-triplet-pre-2020.schema.json"))
-            .getSample();
-        assertTrue(sample.isArray());
+        JsonNode sample = initialise(DRAFT_04, "schemas/array/strict-triplet-pre-2020.schema.json");
         assertEquals("First element", sample.get(0).textValue());
         assertEquals("Second element", sample.get(1).textValue());
         assertEquals("Third element", sample.get(2).textValue());
+    }
+
+    @Test
+    public void containsConstant() throws IOException {
+        JsonNode sample = initialise(_2020_12, "schemas/array/contains-constant.schema.json");
+        System.out.println(sample);
+        assertTrue(StreamSupport.stream(sample.spliterator(), true)
+            .anyMatch(node -> node.isTextual()
+                && "A string which is unlikely to be generated at random".equals(node.textValue())));
+    }
+
+    @Test
+    public void containsType() throws IOException {
+        JsonNode sample = initialise(_2020_12, "schemas/array/contains-type.schema.json");
+        assertEquals(JsonNodeType.BOOLEAN, sample.get(5).getNodeType());
+    }
+
+    private JsonNode initialise(JsonSchemaDialect dialect, String schemaFilePath) throws IOException {
+        config.setJsonSchemaDialect(dialect);
+        JsonNode schema = schemaFromFile(schemaFilePath);
+        JsonNode sample = config.getJsonSampleFactory(schema).getSample();
+        assertTrue(sample.isArray());
+        return sample;
     }
 
     private JsonNode schemaFromFile(String schemaFilePath) throws IOException {

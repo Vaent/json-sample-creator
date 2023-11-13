@@ -1,0 +1,6 @@
+{
+    "type": "array",
+    "prefixItems": [{"type": "null"}, {"type": "null"}, {"type": "null"}, {"type": "null"}, {"type": "null"}],
+    "maxItems": 6,
+    "contains": {"type": "boolean"}
+}
