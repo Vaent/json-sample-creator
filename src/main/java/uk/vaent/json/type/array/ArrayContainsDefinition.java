@@ -1,10 +1,13 @@
 package uk.vaent.json.type.array;
 
+import static uk.vaent.json.JsonSchemaParser.INVALID_TYPE_FORMAT_MESSAGE;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.StreamSupport;
 import uk.vaent.json.JsonSchemaParser;
 import uk.vaent.json.type.JsonType;
 
@@ -45,9 +48,20 @@ public class ArrayContainsDefinition {
             if (definition.has("const")) {
                 return JsonSchemaParser.validate(JsonType.of(definition.get("const")), containsSchema);
             } else if (definition.has("type")) {
-                return JsonSchemaParser.validate(JsonType.valueOf(definition.get("type").textValue()), containsSchema);
+                JsonNode type = definition.get("type");
+                if (type.isTextual()) return validateType(type);
+                if (type.isArray()) {
+                    return StreamSupport.stream(type.spliterator(), true)
+                        .anyMatch(this::validateType);
+                }
+                throw new IllegalArgumentException(INVALID_TYPE_FORMAT_MESSAGE);
             }
         }
         return false;
+    }
+
+    private boolean validateType(JsonNode typeTextNode) {
+        return typeTextNode.isTextual()
+            && JsonSchemaParser.validate(JsonType.valueOf(typeTextNode.textValue().toUpperCase()), containsSchema);
     }
 }
