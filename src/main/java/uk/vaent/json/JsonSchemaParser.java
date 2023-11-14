@@ -1,5 +1,8 @@
 package uk.vaent.json;
 
+import static uk.vaent.json.JsonSchemaKeyword.CONST;
+import static uk.vaent.json.JsonSchemaKeyword.TYPE;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -9,6 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.springframework.lang.NonNull;
 import uk.vaent.json.type.JsonType;
 
 public class JsonSchemaParser {
@@ -18,6 +22,16 @@ public class JsonSchemaParser {
         .filter(type -> (type != JsonType.ARRAY) && (type != JsonType.OBJECT))
         .toList();
     private static final Random random = new Random();
+
+    /**
+     * Compares two schemas and returns a new schema which satisfies both of the inputs.
+     */
+    public static JsonNode getIntersection(@NonNull JsonNode schemaA, @NonNull JsonNode schemaB) {
+        if (schemaA.equals(schemaB)) return schemaA.deepCopy();
+        if (schemaSatisfiesOtherSchema(schemaA, schemaB)) return schemaA.deepCopy();
+        if (schemaSatisfiesOtherSchema(schemaB, schemaA)) return schemaB.deepCopy();
+        return null;
+    }
 
     public static JsonType getType(JsonNode schema) {
         if (BooleanNode.TRUE.equals(schema)) return selectFromValueTypes(); // all values are valid for the `true` schema
@@ -32,15 +46,22 @@ public class JsonSchemaParser {
             JsonSchemaParser::selectFromValueTypes);
     }
 
-    public static boolean validate(JsonType type, JsonNode schema) {
+    public static boolean schemaSatisfiesOtherSchema(@NonNull JsonNode schema, @NonNull JsonNode otherSchema) {
+        return schema.equals(otherSchema)
+            || otherSchema.equals(BooleanNode.TRUE)
+            || schema.has(CONST) && validate(JsonType.of(schema.get(CONST)), otherSchema);
+    }
+
+    public static boolean validate(@NonNull JsonType type, JsonNode schema) {
         if (BooleanNode.TRUE.equals(schema)) return true; // all values are valid for the `true` schema
         if (!schema.isObject()) return false;
+        if (schema.has(CONST)) return JsonType.of(schema.get(CONST)).matcher.apply(type);
         return processTypeKeyword(schema,
-            type.matcher,
+            type.stringMatcher,
             schemaType -> schemaType.isEmpty() // all values are valid if no type is specified
                 || StreamSupport.stream(schemaType.spliterator(), true)
                     .map(JsonNode::textValue)
-                    .anyMatch(type.matcher::apply),
+                    .anyMatch(type.stringMatcher::apply),
             () -> true);
     }
 
@@ -50,7 +71,7 @@ public class JsonSchemaParser {
                                             Function<String, R> actionIfString,
                                             Function<ArrayNode, R> actionIfArray,
                                             Supplier<R> actionIfNull) {
-        JsonNode type = parentSchema.get("type");
+        JsonNode type = parentSchema.get(TYPE);
         if (type == null) return actionIfNull.get();
         if (type.isTextual()) return actionIfString.apply(type.textValue());
         if (type.isArray()) return actionIfArray.apply((ArrayNode)type);

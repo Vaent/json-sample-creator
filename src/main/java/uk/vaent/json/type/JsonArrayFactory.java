@@ -1,5 +1,7 @@
 package uk.vaent.json.type;
 
+import static uk.vaent.json.JsonSchemaKeyword.*;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -36,8 +38,8 @@ public class JsonArrayFactory extends JsonTypeFactory {
 
     @Autowired
     public void init(@Value("${arrayMaxItems}") int defaultMaxItems, @Value("${arrayMinItems}") int defaultMinItems) {
-        Optional<Integer> schemaMaxItems = Optional.ofNullable(schema.get("maxItems")).map(JsonNode::intValue);
-        Optional<Integer> schemaMinItems = Optional.ofNullable(schema.get("minItems")).map(JsonNode::intValue);
+        Optional<Integer> schemaMaxItems = Optional.ofNullable(schema.get(MAX_ITEMS)).map(JsonNode::intValue);
+        Optional<Integer> schemaMinItems = Optional.ofNullable(schema.get(MIN_ITEMS)).map(JsonNode::intValue);
         if (arrayContains.matchingIndices.isEmpty()) {
             minItems = schemaMinItems.orElse(Math.min(defaultMinItems, schemaMaxItems.orElse(defaultMaxItems)));
         } else {
@@ -63,9 +65,10 @@ public class JsonArrayFactory extends JsonTypeFactory {
                     + ") less than minItems (" + minItems + ") for schema " + schema);
                 break;
             }
-            if ((sample.size() == indexSatisfyingContains) && schema.has("contains")) {
-                sample.add(config.getJsonSampleFactory(schema.get("contains")).getSample());
-                itemSchemas.next();
+            if ((sample.size() == indexSatisfyingContains) && schema.has(CONTAINS)) {
+                JsonNode next = itemSchemas.next();
+                JsonNode intersection = JsonSchemaParser.getIntersection(schema.get(CONTAINS), next);
+                sample.add(config.getJsonSampleFactory(intersection).getSample());
             } else {
                 sample.add(config.getJsonSampleFactory(itemSchemas.next()).getSample());
             }

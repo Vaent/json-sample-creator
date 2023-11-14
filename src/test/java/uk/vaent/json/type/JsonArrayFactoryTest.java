@@ -56,7 +56,6 @@ public class JsonArrayFactoryTest {
     @Test
     public void containsConstant() throws IOException {
         JsonNode sample = initialise(_2020_12, "schemas/array/contains-constant.schema.json");
-        System.out.println(sample);
         assertTrue(StreamSupport.stream(sample.spliterator(), true)
             .anyMatch(node -> node.isTextual()
                 && "A string which is unlikely to be generated at random".equals(node.textValue())));
@@ -68,11 +67,21 @@ public class JsonArrayFactoryTest {
         assertEquals(JsonNodeType.BOOLEAN, sample.get(5).getNodeType());
     }
 
+    @Test
+    public void containsDoesNotReplaceIndexedItemDefinition() throws IOException {
+        JsonNode sample = initialise(_2020_12, "schemas/array/contains-string.schema.json");
+        for(JsonNode node : sample) {
+            assertTrue(node.isTextual(), node + " should be a JSON string");
+            assertEquals("A string which is unlikely to be generated at random", node.textValue());
+        }
+    }
+
     private JsonNode initialise(JsonSchemaDialect dialect, String schemaFilePath) throws IOException {
         config.setJsonSchemaDialect(dialect);
         JsonNode schema = schemaFromFile(schemaFilePath);
         JsonNode sample = config.getJsonSampleFactory(schema).getSample();
-        assertTrue(sample.isArray());
+        System.out.println(sample);
+        assertTrue(sample.isArray(), sample + " should be a JSON array");
         return sample;
     }
 

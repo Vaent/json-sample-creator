@@ -1,0 +1,13 @@
+{
+    "type": "array",
+    "prefixItems": [
+        {"const": "A string which is unlikely to be generated at random"},
+        {"const": "A string which is unlikely to be generated at random"},
+        {"const": "A string which is unlikely to be generated at random"},
+        {"const": "A string which is unlikely to be generated at random"},
+        {"const": "A string which is unlikely to be generated at random"},
+        {"const": "A string which is unlikely to be generated at random"}
+    ],
+    "maxItems": 6,
+    "contains": {"type": "string"}
+}
