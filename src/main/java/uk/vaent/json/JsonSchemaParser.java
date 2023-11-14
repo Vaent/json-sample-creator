@@ -46,10 +46,22 @@ public class JsonSchemaParser {
             JsonSchemaParser::selectFromValueTypes);
     }
 
+    /**
+     * Returns true if all values which satisfy <code>schema</code> will also satisfy <code>otherSchema</code>,
+     * based on a comparison of the constraints in both schemas.
+     */
     public static boolean schemaSatisfiesOtherSchema(@NonNull JsonNode schema, @NonNull JsonNode otherSchema) {
-        return schema.equals(otherSchema)
-            || otherSchema.equals(BooleanNode.TRUE)
-            || schema.has(CONST) && validate(JsonType.of(schema.get(CONST)), otherSchema);
+        if (schema.equals(otherSchema)) return true;
+        if (otherSchema.equals(BooleanNode.TRUE)) return true;
+        if (otherSchema.has(CONST)) return otherSchema.get(CONST).equals(schema.get(CONST));
+        if (schema.has(CONST) && validate(JsonType.of(schema.get(CONST)), otherSchema)) return true;
+        if (schema.has(TYPE)) {
+            JsonNode schemaType = schema.get(TYPE);
+            if (schemaType.isTextual()) return validateType(schemaType, otherSchema);
+            if (schemaType.isArray()) return StreamSupport.stream(schemaType.spliterator(), true)
+                .anyMatch(t -> validateType(t, otherSchema));
+        }
+        return false;
     }
 
     public static boolean validate(@NonNull JsonType type, JsonNode schema) {
@@ -86,5 +98,10 @@ public class JsonSchemaParser {
 
     private static JsonType selectFromValueTypes() {
         return jsonValueTypes.get(random.nextInt(jsonValueTypes.size()));
+    }
+
+    private static boolean validateType(JsonNode typeTextNode, JsonNode schema) {
+        return typeTextNode.isTextual()
+            && validate(JsonType.valueOf(typeTextNode.textValue().toUpperCase()), schema);
     }
 }

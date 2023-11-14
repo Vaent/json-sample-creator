@@ -1,16 +1,13 @@
 package uk.vaent.json.type.array;
 
-import static uk.vaent.json.JsonSchemaParser.INVALID_TYPE_FORMAT_MESSAGE;
+import static uk.vaent.json.JsonSchemaKeyword.CONTAINS;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.StreamSupport;
 import uk.vaent.json.JsonSchemaParser;
-import uk.vaent.json.type.JsonType;
 
 public class ArrayContainsDefinition {
     private final JsonNode containsSchema;
@@ -23,7 +20,7 @@ public class ArrayContainsDefinition {
     public final List<Integer> matchingIndices;
 
     public ArrayContainsDefinition(JsonNode parentSchema, ArrayItemDefinitions itemDefinitions) {
-        containsSchema = parentSchema.get("contains");
+        containsSchema = parentSchema.get(CONTAINS);
         matchingIndices = Collections.unmodifiableList(determineMatches(itemDefinitions));
         matchesGeneralItems = (matchingIndices.contains(itemDefinitions.tupleLength()));
     }
@@ -32,7 +29,7 @@ public class ArrayContainsDefinition {
         List<Integer> matches = new ArrayList<>();
         int testIndex = 0;
         for (JsonNode definition : itemDefinitions) {
-            if (containsIsSatisfiedBy(definition)) matches.add(testIndex);
+            if (containsSchemaAgreesWith(definition)) matches.add(testIndex);
             if (testIndex == itemDefinitions.tupleLength()) break;
             testIndex++;
         }
@@ -40,27 +37,10 @@ public class ArrayContainsDefinition {
         return matches;
     }
 
-    private boolean containsIsSatisfiedBy(JsonNode definition) {
-        if (containsSchema == null || containsSchema.equals(definition) || BooleanNode.TRUE.equals(definition)) return true;
-        if (containsSchema.has("const")) {
-            JsonNode constValue = containsSchema.get("const");
-            if (definition.has("const")) return constValue.equals(definition.get("const"));
-            return JsonSchemaParser.validate(JsonType.of(constValue), definition);
-        }
-        if (containsSchema.has("type")) {
-            if (definition.has("const")) {
-                return JsonSchemaParser.validate(JsonType.of(definition.get("const")), containsSchema);
-            } else if (definition.has("type")) {
-                JsonNode type = definition.get("type");
-                if (type.isTextual()) return validateType(type);
-                if (type.isArray()) {
-                    return StreamSupport.stream(type.spliterator(), true)
-                        .anyMatch(this::validateType);
-                }
-                throw new IllegalArgumentException(INVALID_TYPE_FORMAT_MESSAGE);
-            }
-        }
-        return false;
+    private boolean containsSchemaAgreesWith(JsonNode definition) {
+        return (containsSchema == null)
+            || JsonSchemaParser.schemaSatisfiesOtherSchema(definition, containsSchema)
+            || JsonSchemaParser.schemaSatisfiesOtherSchema(containsSchema, definition);
     }
 
     public List<Integer> matchingIndices(int arraySize) {
@@ -72,10 +52,5 @@ public class ArrayContainsDefinition {
             }
         }
         return copyList;
-    }
-
-    private boolean validateType(JsonNode typeTextNode) {
-        return typeTextNode.isTextual()
-            && JsonSchemaParser.validate(JsonType.valueOf(typeTextNode.textValue().toUpperCase()), containsSchema);
     }
 }
