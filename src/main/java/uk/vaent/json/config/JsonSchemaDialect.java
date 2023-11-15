@@ -1,5 +1,7 @@
 package uk.vaent.json.config;
 
+import static uk.vaent.json.JsonSchemaKeyword.$SCHEMA;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.lang.NonNull;
 
@@ -11,8 +13,8 @@ public enum JsonSchemaDialect {
     _2020_12;
 
     public static JsonSchemaDialect of(@NonNull JsonNode schema) {
-        if (!schema.has("$schema")) return null;
-        return switch (schema.get("$schema").textValue()) {
+        if (!schema.has($SCHEMA)) return null;
+        return switch (schema.get($SCHEMA).textValue()) {
             // draft-05 should never be encountered; it is functionally equivalent to draft-04
             case "http://json-schema.org/draft-04/schema#", "http://json-schema.org/draft-05/schema#" -> DRAFT_04;
             case "http://json-schema.org/draft-06/schema#" -> DRAFT_06;

@@ -1,5 +1,7 @@
 package uk.vaent.json.type;
 
+import static uk.vaent.json.JsonSchemaKeyword.PROPERTIES;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,7 +26,7 @@ public class JsonObjectFactory extends JsonTypeFactory {
     protected ObjectNode generateSample() {
         if (!JsonSchemaParser.validate(JsonType.OBJECT, schema)) return null;
         ObjectNode sample = JsonNodeFactory.instance.objectNode();
-        JsonNode propertiesSchema = schema.get("properties");
+        JsonNode propertiesSchema = schema.get(PROPERTIES);
         if (propertiesSchema != null) {
             propertiesSchema.fields().forEachRemaining(entry ->
                 sample.set(entry.getKey(), config.getJsonSampleFactory(entry.getValue()).getSample())
